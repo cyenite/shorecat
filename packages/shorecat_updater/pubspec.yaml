@@ -1,0 +1,19 @@
+name: shorecat_updater
+description: Pure Dart shorecat updater - patch checks, verified downloads, delta install, boot breadcrumbs and crash rollback.
+version: 0.1.0
+publish_to: none
+resolution: workspace
+
+environment:
+  sdk: ^3.9.0
+
+dependencies:
+  archive: ^4.0.2
+  shorecat_core:
+    path: ../shorecat_core
+
+dev_dependencies:
+  path: ^1.9.0
+  shorecat_server:
+    path: ../shorecat_server
+  test: ^1.25.6
