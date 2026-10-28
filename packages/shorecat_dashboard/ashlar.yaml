@@ -1,0 +1,7 @@
+# Ashlar UI: where components go and how they look. ashlar init and apply
+# change these, and so can you.
+path: lib/ui
+base: zinc
+accent: orange
+style: standard
+agents: false
