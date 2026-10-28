@@ -6,3 +6,7 @@ shorecat-data/
 pubspec_overrides.yaml
 # Personal notes
 .docs/
+.env
+.env.*
+!.env.example
+backups/

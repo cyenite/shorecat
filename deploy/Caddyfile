@@ -1,0 +1,3 @@
+{$SHORECAT_PUBLIC_URL} {
+	reverse_proxy shorecat:8080
+}

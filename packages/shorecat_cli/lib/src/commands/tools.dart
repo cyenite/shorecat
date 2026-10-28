@@ -1,10 +1,10 @@
-import 'dart:async';
 import 'dart:io';
 
 import 'package:args/command_runner.dart';
 import 'package:shorecat_core/shorecat_core.dart';
 import 'package:shorecat_server/shorecat_server.dart';
 
+import '../config.dart';
 import '../log.dart';
 import 'base.dart';
 
@@ -112,43 +112,15 @@ class ServerCommand extends ShorecatCommand {
   final description = 'Run a shorecat server.';
 
   ServerCommand() {
-    argParser
-      ..addOption('data', defaultsTo: 'shorecat-data')
-      ..addOption('host', defaultsTo: '127.0.0.1')
-      ..addOption('port', defaultsTo: '8080')
-      ..addOption(
-        'public-url',
-        help: 'Base URL devices use to download patches.',
-      )
-      ..addOption(
-        'dashboard',
-        help: 'Built dashboard (flutter build web) to serve at /.',
-      );
+    addServerOptions(argParser);
   }
 
   @override
   Future<int> run() async {
-    final server = await ShorecatServer.start(
-      dataDir: Directory(option('data')!),
-      port: intArg(option('port')!, 'Port'),
-      host: option('host')!,
-      publicUrl: option('public-url'),
-      adminToken: Platform.environment['SHORECAT_ADMIN_TOKEN'],
-      dashboardDir: option('dashboard') == null
-          ? null
-          : Directory(option('dashboard')!),
-    );
-    Log.success('shorecat server on ${server.url}');
-    Log.detail('Dashboard:   ${server.url}/');
-    Log.detail('Admin token: ${server.adminToken}');
-    Log.detail(
-      'Log in with: shorecat login --server ${server.url} --token ${server.adminToken}',
-    );
-    final done = Completer<int>();
-    ProcessSignal.sigint.watch().listen((_) async {
-      await server.close();
-      if (!done.isCompleted) done.complete(0);
-    });
-    return done.future;
+    try {
+      return await runServer(argResults!);
+    } on FormatException catch (error) {
+      throw CliException(error.message);
+    }
   }
 }

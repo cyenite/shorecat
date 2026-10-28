@@ -97,19 +97,26 @@ void main() {
     String release = '1.0.0+1',
     int maxBootAttempts = 1,
     List<PatchPublicKey>? trusted,
-  }) => Updater.open(
-    UpdaterConfig(
-      maxBootAttempts: maxBootAttempts,
-      arch: Arch.arm64,
-      appId: 'demo',
-      baseUrl: server.url.toString(),
-      releaseVersion: release,
-      storageDir: Directory('${temp.path}/device'),
-      platform: AppPlatform.android,
-      publicKeys: trusted ?? [keys.publicKey],
-      readBaseArtifact: () async => base,
-    ),
-  );
+  }) async {
+    final updater = await Updater.open(
+      UpdaterConfig(
+        maxBootAttempts: maxBootAttempts,
+        arch: Arch.arm64,
+        appId: 'demo',
+        baseUrl: server.url.toString(),
+        releaseVersion: release,
+        storageDir: Directory('${temp.path}/device'),
+        platform: AppPlatform.android,
+        publicKeys: trusted ?? [keys.publicKey],
+        readBaseArtifact: () async => base,
+      ),
+    );
+    addTearDown(() async {
+      await updater.flushEvents();
+      updater.close();
+    });
+    return updater;
+  }
 
   Future<Map<String, Object?>> serverPatch(int number) async {
     final release = await admin.send(

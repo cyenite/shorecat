@@ -49,6 +49,8 @@ class Store {
     return result;
   }
 
+  Future<void> flush() => _tail;
+
   AppRecord? app(String id) => apps.where((a) => a.id == id).firstOrNull;
 
   ReleaseRecord? release(String appId, String version, String platform) =>

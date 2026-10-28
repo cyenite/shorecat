@@ -1,0 +1,13 @@
+.git
+.github
+.docs
+**/.dart_tool
+**/build
+**/.idea
+**/.ashlar
+**/pubspec_overrides.yaml
+**/local.properties
+**/*.iml
+**/.env*
+shorecat-data
+backups

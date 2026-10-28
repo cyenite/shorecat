@@ -1,7 +1,8 @@
 name: shorecat_code_push
 description: Over-the-air Dart code updates for Flutter Android apps, on the stock Flutter engine.
 version: 0.1.0
-publish_to: none
+repository: https://github.com/cyenite/shorecat
+issue_tracker: https://github.com/cyenite/shorecat/issues
 
 environment:
   sdk: ^3.9.0
@@ -10,8 +11,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  shorecat_updater:
-    path: ../shorecat_updater
+  shorecat_updater: ^0.1.0
   yaml: ^3.1.2
 
 dev_dependencies:

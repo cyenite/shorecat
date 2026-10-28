@@ -1,7 +1,8 @@
 name: shorecat_cli
 description: The shorecat command line - create releases, build and sign patches, manage rollouts.
 version: 0.1.0
-publish_to: none
+repository: https://github.com/cyenite/shorecat
+issue_tracker: https://github.com/cyenite/shorecat/issues
 resolution: workspace
 
 environment:
@@ -15,10 +16,8 @@ dependencies:
   args: ^2.6.0
   http: ^1.2.2
   path: ^1.9.0
-  shorecat_core:
-    path: ../shorecat_core
-  shorecat_server:
-    path: ../shorecat_server
+  shorecat_core: ^0.1.0
+  shorecat_server: ^0.1.0
   yaml: ^3.1.2
 
 dev_dependencies:

@@ -85,25 +85,38 @@ Details: [docs/architecture.md](docs/architecture.md).
 
 ## 🐈 Quick start
 
-```bash
-# 1. Start a server. It prints an admin token and the dashboard address.
-cd packages/shorecat_dashboard && flutter build web && cd ../..
-dart run packages/shorecat_cli/bin/shorecat.dart server --host 0.0.0.0 --port 8787 \
-  --dashboard packages/shorecat_dashboard/build/web
+The easiest server installation is Docker: the image includes the server and
+built dashboard. Users need Docker and Compose on their server, plus a domain for
+HTTPS. See [Hosting Shorecat](docs/hosting.md) for the complete installation,
+existing reverse proxies, backups, restore and upgrades.
 
-# 2. In your Flutter app
-shorecat init --server http://<host>:8787 --token <admin token>
+```bash
+# From an extracted deployment bundle; edit .env with your public HTTPS URL.
+cp .env.example .env
+chmod 600 .env
+docker compose up -d
+docker compose exec shorecat cat /data/admin-token
+```
+
+The default Compose configuration includes Caddy for automatic HTTPS. Data lives
+in a persistent volume, and the service restarts after a host reboot. Release
+bundles and prebuilt images become available after the first release workflow
+runs; [build from source](docs/hosting.md#build-from-source-or-try-locally) before
+then.
+
+On your development machine, once the packages are published:
+
+```bash
+dart pub global activate shorecat_cli
+cd /path/to/your/flutter-app
+flutter pub add shorecat_code_push
+shorecat init --server https://updates.example.com --token <admin-token>
 ```
 
 `init` makes a signing key (it stays in `~/.config/shorecat`, never in your
-repo), writes `shorecat.yaml`, bundles it as an asset, points `MainActivity` at
-`ShorecatFlutterActivity` and registers the app. Then add the plugin:
-
-```yaml
-dependencies:
-  shorecat_code_push:
-    path: <path to>/shorecat/packages/shorecat_code_push
-```
+repo), writes `shorecat.yaml`, bundles it as an asset, points a stock Kotlin
+`MainActivity` at `ShorecatFlutterActivity` and registers the app. Import
+`package:shorecat_code_push/shorecat_code_push.dart` and initialize it:
 
 ```dart
 Future<void> main() async {
@@ -161,6 +174,11 @@ itself. Live every 10 seconds:
 | `shorecat_dashboard` | The Flutter web dashboard (Ashlar UI) |
 
 ## 🧪 Tests
+
+For contributor setup, install Dart/Flutter and run `bash tool/bootstrap.sh`.
+This creates ignored local overrides so the Flutter plugin and example can use
+unpublished sibling packages. The pure Dart workspace resolves siblings directly.
+See [Releasing Shorecat](docs/releasing.md) for pub.dev and container releases.
 
 ```bash
 for p in core server updater cli; do (cd packages/shorecat_$p && dart test); done

@@ -15,17 +15,27 @@ import 'src/telemetry.dart';
 
 export 'src/api.dart' show ShorecatApi;
 export 'src/models.dart';
+export 'src/runtime.dart';
 export 'src/store.dart' show Store;
 export 'src/telemetry.dart' show Telemetry;
 
 class ShorecatServer {
   final HttpServer http;
+  final Store store;
   final String adminToken;
   final Telemetry telemetry;
+  final Set<Future<Response>> _pending;
+  Future<void>? _closing;
 
-  ShorecatServer._(this.http, this.adminToken, this.telemetry);
+  ShorecatServer._(
+    this.http,
+    this.store,
+    this.adminToken,
+    this.telemetry,
+    this._pending,
+  );
 
-  Uri get url => Uri.parse('http://${http.address.host}:${http.port}');
+  Uri get url => Uri(scheme: 'http', host: http.address.host, port: http.port);
 
   static Future<ShorecatServer> start({
     required Directory dataDir,
@@ -48,13 +58,27 @@ class ShorecatServer {
     );
     var pipeline = const Pipeline();
     if (!isQuiet) pipeline = pipeline.addMiddleware(logRequests());
-    final server = await io.serve(pipeline.addHandler(api.handler), host, port);
+    final pending = <Future<Response>>{};
+    final handler = pipeline.addHandler(api.handler);
+    final server = await io.serve(
+      (request) {
+        final response = Future<Response>.sync(() => handler(request));
+        pending.add(response);
+        return response.whenComplete(() => pending.remove(response));
+      },
+      host,
+      port,
+    );
     server.autoCompress = true;
-    return ShorecatServer._(server, token, telemetry);
+    return ShorecatServer._(server, store, token, telemetry, pending);
   }
 
-  Future<void> close() async {
+  Future<void> close() => _closing ??= _close();
+
+  Future<void> _close() async {
     await http.close(force: true);
+    await Future.wait(_pending.toList());
+    await store.flush();
     await telemetry.flush();
   }
 

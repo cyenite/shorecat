@@ -110,14 +110,14 @@ packages:
     source: path
     version: "0.1.0"
   shorecat_core:
-    dependency: transitive
+    dependency: "direct overridden"
     description:
       path: "../../shorecat_core"
       relative: true
     source: path
     version: "0.1.0"
   shorecat_updater:
-    dependency: transitive
+    dependency: "direct overridden"
     description:
       path: "../../shorecat_updater"
       relative: true

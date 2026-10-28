@@ -1,0 +1,20 @@
+name: shorecat
+
+services:
+  shorecat:
+    image: ${SHORECAT_IMAGE:-ghcr.io/cyenite/shorecat:0.1.0}
+    restart: unless-stopped
+    init: true
+    stop_grace_period: 30s
+    environment:
+      SHORECAT_PUBLIC_URL: ${SHORECAT_PUBLIC_URL:?Set SHORECAT_PUBLIC_URL in .env}
+      SHORECAT_ADMIN_TOKEN: ${SHORECAT_ADMIN_TOKEN:-}
+    ports:
+      - "${SHORECAT_BIND_ADDRESS:-127.0.0.1}:${SHORECAT_PORT:-8787}:8080"
+    volumes:
+      - shorecat-data:/data
+    security_opt:
+      - no-new-privileges:true
+
+volumes:
+  shorecat-data:

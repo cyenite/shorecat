@@ -1,0 +1,49 @@
+name: Checks
+
+on:
+  workflow_call:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.47.7'
+          cache: true
+      - run: bash tool/bootstrap.sh
+      - run: dart analyze
+      - run: |
+          for package in core server updater cli; do
+            (cd "packages/shorecat_$package" && dart test)
+          done
+      - run: flutter analyze
+        working-directory: packages/shorecat_code_push
+      - run: flutter test
+        working-directory: packages/shorecat_code_push
+      - run: flutter analyze
+        working-directory: packages/shorecat_dashboard
+      - run: flutter test
+        working-directory: packages/shorecat_dashboard
+      - run: flutter build web --release --no-web-resources-cdn
+        working-directory: packages/shorecat_dashboard
+      - run: |
+          bash -n tool/*.sh
+          SHORECAT_PUBLIC_URL=https://updates.example.com docker compose -f compose.yaml -f compose.https.yaml config --quiet
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          load: true
+          tags: shorecat:test
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+      - run: bash tool/smoke-container.sh shorecat:test
+      - run: bash tool/smoke-deployment.sh shorecat:test

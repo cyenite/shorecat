@@ -41,6 +41,7 @@ class Telemetry {
   final Map<String, Map<int, Map<String, int>>> hourly;
   final Map<String, Map<String, DeviceSeen>> devices;
   Timer? _pending;
+  Future<void> _tail = Future.value();
 
   Telemetry._(this.file, this.hourly, this.devices);
 
@@ -177,9 +178,15 @@ class Telemetry {
     };
   }
 
-  Future<void> flush() async {
+  Future<void> flush() {
     _pending?.cancel();
     _pending = null;
+    final result = _tail.then((_) => _persist());
+    _tail = result.then((_) {}, onError: (_) {});
+    return result;
+  }
+
+  Future<void> _persist() async {
     final cutoff = _hourOf(DateTime.now().subtract(retention));
     for (final app in hourly.values) {
       app.removeWhere((hour, _) => hour < cutoff);
