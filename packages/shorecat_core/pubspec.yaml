@@ -1,0 +1,16 @@
+name: shorecat_core
+description: Shared shorecat building blocks - delta patch format, Ed25519 patch signing and the wire protocol models.
+version: 0.1.0
+publish_to: none
+resolution: workspace
+
+environment:
+  sdk: ^3.9.0
+
+dependencies:
+  archive: ^4.0.2
+  crypto: ^3.0.6
+  cryptography: ^2.7.0
+
+dev_dependencies:
+  test: ^1.25.6
