@@ -2,6 +2,10 @@ name: Checks
 
 on:
   workflow_call:
+    inputs:
+      source-ref:
+        type: string
+        required: false
   pull_request:
   push:
     branches: [main]
@@ -14,6 +18,8 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.source-ref || github.ref }}
       - uses: subosito/flutter-action@v2
         with:
           flutter-version: '3.47.7'

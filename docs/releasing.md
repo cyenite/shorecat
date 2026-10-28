@@ -73,6 +73,14 @@ for the initial account setup and per-package tag authorization.
 
 4. Push `v<VERSION>` once the release is ready.
 
+If a tag event did not start the workflow, dispatch `Release` from the default
+branch with `tag=v<VERSION>`. Both checks and image builds check out that exact
+existing tag; there is no need to move or recreate it:
+
+```bash
+gh workflow run release.yml --ref main -f tag=v0.1.0
+```
+
 `.github/workflows/release.yml` first runs the checks workflow, including a local
 image smoke test. It then builds Linux amd64 and arm64 images and publishes
 `ghcr.io/cyenite/shorecat:<VERSION>` plus a minor-version tag. The Dockerfile pins

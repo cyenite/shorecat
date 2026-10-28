@@ -2,7 +2,16 @@ name: Release
 
 on:
   push:
-    tags: ['v[0-9]+.[0-9]+.[0-9]+']
+    tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Existing release tag (for example v0.1.0)
+        type: string
+        required: true
+
+env:
+  RELEASE_TAG: ${{ inputs.tag || github.ref_name }}
 
 permissions:
   contents: read
@@ -10,6 +19,8 @@ permissions:
 jobs:
   checks:
     uses: ./.github/workflows/check.yml
+    with:
+      source-ref: ${{ inputs.tag && format('refs/tags/{0}', inputs.tag) || github.ref }}
   image:
     needs: checks
     runs-on: ubuntu-24.04
@@ -18,10 +29,13 @@ jobs:
       packages: write
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.tag && format('refs/tags/{0}', inputs.tag) || github.ref }}
       - name: Check package versions match tag
         shell: bash
         run: |
-          version="${GITHUB_REF_NAME#v}"
+          [[ "$RELEASE_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]
+          version="${RELEASE_TAG#v}"
           for package in core server updater cli code_push; do
             grep -qx "version: $version" "packages/shorecat_$package/pubspec.yaml"
           done
@@ -37,8 +51,8 @@ jobs:
         with:
           images: ghcr.io/${{ github.repository }}
           tags: |
-            type=semver,pattern={{version}}
-            type=semver,pattern={{major}}.{{minor}}
+            type=semver,pattern={{version}},value=${{ env.RELEASE_TAG }}
+            type=semver,pattern={{major}}.{{minor}},value=${{ env.RELEASE_TAG }}
       - uses: docker/build-push-action@v6
         with:
           context: .
@@ -54,11 +68,11 @@ jobs:
         shell: bash
         run: |
           mkdir -p dist
-          tar -czf "dist/shorecat-deploy-${GITHUB_REF_NAME}.tar.gz" \
+          tar -czf "dist/shorecat-deploy-${RELEASE_TAG}.tar.gz" \
             compose.yaml compose.https.yaml .env.example deploy tool/backup.sh tool/restore.sh docs/hosting.md LICENSE
       - name: Attach deployment bundle
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release view "$GITHUB_REF_NAME" || gh release create "$GITHUB_REF_NAME" --generate-notes
-          gh release upload "$GITHUB_REF_NAME" dist/*.tar.gz --clobber
+          gh release view "$RELEASE_TAG" || gh release create "$RELEASE_TAG" --verify-tag --generate-notes
+          gh release upload "$RELEASE_TAG" dist/*.tar.gz --clobber
