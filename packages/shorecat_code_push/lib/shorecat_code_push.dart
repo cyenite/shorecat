@@ -15,6 +15,11 @@ export 'package:shorecat_updater/shorecat_updater.dart'
     show PatchCheckResponse, UpdateResult, UpdateStatus;
 
 export 'src/config.dart';
+export 'src/update_banner.dart';
+export 'src/update_builder.dart';
+export 'src/update_controller.dart';
+export 'src/update_prompt.dart'
+    show ShorecatUpdatePrompt, ShorecatUpdatePresentation;
 
 /// Entry point for apps. Call [initialize] in `main()`:
 ///
@@ -25,7 +30,7 @@ export 'src/config.dart';
 ///   runApp(const MyApp());
 /// }
 /// ```
-class Shorecat {
+class Shorecat extends ChangeNotifier {
   final bool isHooked;
   final int? crashedPatchNumber;
   final Updater updater;
@@ -115,7 +120,7 @@ class Shorecat {
       try {
         await updater.reportLaunchSuccess();
         if (isAutoUpdate ?? config.isAutoUpdate) {
-          final result = await updater.update();
+          final result = await shorecat.update();
           debugPrint('shorecat: $result');
           onUpdate?.call(result);
         }
@@ -137,9 +142,16 @@ class Shorecat {
 
   Future<PatchCheckResponse> checkForUpdate() => updater.checkForUpdate();
 
+  /// Checks for and installs a patch, then notifies listeners of readiness.
   Future<UpdateResult> update({
     void Function(int received, int total)? onProgress,
-  }) => updater.update(onProgress: onProgress);
+  }) async {
+    try {
+      return await updater.update(onProgress: onProgress);
+    } finally {
+      notifyListeners();
+    }
+  }
 
   /// Relaunches the app so an installed patch runs immediately. Use it for
   /// critical patches, ideally after asking the user.
