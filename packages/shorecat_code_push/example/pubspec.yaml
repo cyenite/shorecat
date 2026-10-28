@@ -1,0 +1,21 @@
+name: shorecat_code_push_example
+description: Demonstrates shorecat code push.
+publish_to: none
+version: 1.0.0+2
+
+environment:
+  sdk: ^3.9.0
+
+dependencies:
+  flutter:
+    sdk: flutter
+  shorecat_code_push:
+    path: ../
+
+dev_dependencies:
+  flutter_lints: ^6.0.0
+
+flutter:
+  assets:
+    - shorecat.yaml
+  uses-material-design: true

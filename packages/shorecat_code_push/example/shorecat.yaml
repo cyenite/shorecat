@@ -1,0 +1,11 @@
+# shorecat code push configuration. Bundled into the app as an asset.
+# Safe to commit: it holds only public keys.
+app_id: shorecat-demo
+base_url: http://localhost:8787
+channel: stable
+auto_update: true
+# Consecutive crashed boots before a patch is abandoned.
+max_boot_attempts: 1
+# Every key listed here is trusted, which is how keys are rotated.
+public_keys:
+  - ed25519:BoW5QLkThWu/9CAEGHV9E1aEWczYu+MdHAO/6365cbQ=

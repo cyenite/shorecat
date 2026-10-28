@@ -1,0 +1,27 @@
+name: shorecat_code_push
+description: Over-the-air Dart code updates for Flutter Android apps, on the stock Flutter engine.
+version: 0.1.0
+publish_to: none
+
+environment:
+  sdk: ^3.9.0
+  flutter: '>=3.35.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  shorecat_updater:
+    path: ../shorecat_updater
+  yaml: ^3.1.2
+
+dev_dependencies:
+  flutter_lints: ^6.0.0
+  flutter_test:
+    sdk: flutter
+
+flutter:
+  plugin:
+    platforms:
+      android:
+        package: dev.shorecat.code_push
+        pluginClass: ShorecatCodePushPlugin
