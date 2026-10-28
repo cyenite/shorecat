@@ -70,6 +70,7 @@ jobs:
           mkdir -p dist
           tar -czf "dist/shorecat-deploy-${RELEASE_TAG}.tar.gz" \
             compose.yaml compose.https.yaml .env.example deploy tool/backup.sh tool/restore.sh docs/hosting.md LICENSE
+          cp "dist/shorecat-deploy-${RELEASE_TAG}.tar.gz" dist/shorecat-deploy.tar.gz
       - name: Attach deployment bundle
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

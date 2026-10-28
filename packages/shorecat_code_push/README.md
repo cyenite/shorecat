@@ -39,7 +39,107 @@ Code push only runs in Android release builds; `initialize` returns null
 elsewhere. The plugin declares the INTERNET permission, which release builds
 lack by default.
 
-The `example` app is the demo used for the on-device test. Its
+## Choose an update prompt
+
+Wrap screen content with the optional prompt inside a Material app's route:
+
+```dart
+Scaffold(
+  body: ShorecatUpdatePrompt(
+    presentation: ShorecatUpdatePresentation.banner,
+    child: const YourScreen(),
+  ),
+)
+```
+
+Choose `.banner`, `.dialog` or `.page`. The prompt appears when a verified patch
+has finished installing, including background updates. Place one prompt in your
+screen or shared app shell, below its Navigator; avoid placing it in
+`MaterialApp.builder`, which sits above that Navigator.
+
+**Restart** relaunches the application to apply the patch. **Later** hides the
+prompt for that patch while this widget remains mounted; the patch still applies
+on the next launch. A newer patch can show the prompt again. Android Back acts
+as Later for dialogs/pages and is disabled while restart preparation is running.
+The underlying screen stays mounted when a dialog or page is displayed. Nothing
+restarts automatically, including for critical patches.
+
+Use `onBeforeRestart` to save work or ask for confirmation. Return `true` to
+continue or `false` to cancel. Restart failures leave the prompt visible with a
+retry message. Restarting does not automatically preserve navigation or forms.
+All labels and messages can be customized for your app's language. The controls
+inherit the host app's Material theme. For an inline banner without a child,
+`const ShorecatUpdateBanner()` is also available.
+
+## Build your own update screen
+
+Keep the prompt's timing and placement but draw your own content with `builder`.
+It receives a `ShorecatUpdateController` with the state and actions:
+
+```dart
+ShorecatUpdatePrompt(
+  presentation: ShorecatUpdatePresentation.dialog,
+  builder: (context, update) => AlertDialog(
+    title: Text('Version ${update.patchNumber} is ready'),
+    actions: [
+      TextButton(onPressed: update.defer, child: const Text('Not now')),
+      FilledButton(
+        onPressed: update.isRestarting ? null : update.restart,
+        child: const Text('Restart'),
+      ),
+    ],
+  ),
+  child: const YourScreen(),
+)
+```
+
+Return inline content for `.banner`, a `Dialog` for `.dialog` and a `Scaffold`
+for `.page`. Back still acts as Later and is blocked while restarting.
+
+To place update UI anywhere (a settings tile, an app bar badge, your own route),
+use `ShorecatUpdateBuilder`. It always builds, so pick what to show:
+
+```dart
+ShorecatUpdateBuilder(
+  onBeforeRestart: saveDraft,
+  builder: (context, update) => update.isRestartRequired
+      ? ListTile(
+          title: const Text('Update ready'),
+          subtitle: update.hasRestartFailed
+              ? const Text('Could not restart. Try again.')
+              : null,
+          trailing: update.isRestarting
+              ? const CircularProgressIndicator()
+              : const Icon(Icons.restart_alt),
+          onTap: update.restart,
+        )
+      : const SizedBox.shrink(),
+)
+```
+
+| `ShorecatUpdateController` | Meaning |
+|---|---|
+| `isVisible` | A patch is waiting and the user has not chosen Later for it |
+| `isRestartRequired` | A patch is waiting, even if deferred |
+| `isDeferred` | The user chose Later for the waiting patch |
+| `isRestarting` | `onBeforeRestart` or the restart is running |
+| `hasRestartFailed` | The last attempt failed; offer a retry |
+| `patchNumber` | The waiting patch, or null |
+| `restart()` | Runs `onBeforeRestart`, then relaunches into the patch. Works after Later |
+| `defer()` | Hides prompts for this patch; it still applies on the next launch |
+
+Each controller keeps its own Later state. You can also create one yourself
+(`ShorecatUpdateController()`) and dispose it when done.
+
+`Shorecat.instance` itself is a `Listenable`. Call `Shorecat.update()` for
+manual updates so listeners are notified; calling its underlying `updater`
+directly bypasses these notifications. The singleton is owned by the plugin; do
+not dispose it from a screen.
+
+## Example app
+
+The `example` app includes a selector for all three update presentations and a
+custom `ShorecatUpdateBuilder` button that stays available after Later. Its
 `shorecat.yaml` points at a local test server; run
 `shorecat init --force --server <url> --token <token>` in `example/` to
 point it at yours.
