@@ -16,7 +16,7 @@ finish() {
   trap - EXIT
   rm -f "$temporary"
   if [[ -n "$is_running" ]]; then
-    docker compose start --wait --wait-timeout 60 shorecat || result=1
+    docker compose up -d --no-recreate --wait --wait-timeout 60 shorecat || result=1
   fi
   exit "$result"
 }
