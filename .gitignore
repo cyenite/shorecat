@@ -1,0 +1,8 @@
+.dart_tool/
+build/
+*.iml
+.idea/
+shorecat-data/
+pubspec_overrides.yaml
+# Personal notes
+.docs/

@@ -1,0 +1,14 @@
+name: shorecat_workspace
+publish_to: none
+
+environment:
+  sdk: ^3.9.0
+
+workspace:
+  - packages/shorecat_core
+  - packages/shorecat_server
+  - packages/shorecat_cli
+  - packages/shorecat_updater
+
+dev_dependencies:
+  lints: ^6.0.0
